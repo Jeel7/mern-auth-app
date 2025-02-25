@@ -29,7 +29,7 @@ export const registerController = async (req, res) => {
             const hashedPassword = await bcrypt.hash(password, salt)
 
             //generate verification token
-            const verificationToken = Math.floor(100000 + Math.random() * 900000).toString()  //It will create toekn in email for user verifiation
+            const verificationToken = Math.floor(100000 + Math.random() * 900000).toString()  //It will create 6 digit token in email for user verifiation
 
             const user = new User({    //create new user with token generated in email
                 name,
@@ -195,21 +195,21 @@ export const forgotPwdController = async (req, res) => {
         if (!user) {
             res.status(400).json({
                 success: false,
-                message: "User doen't exit, give valid mail id"
+                message: "User doesn't exit, give valid mail id"
             })
         }
 
         //generate reset toekn
-        const resetToekn = crypto.randomBytes(20).toString("hex")
+        const resetToken = crypto.randomBytes(20).toString("hex")      //new token with 20 digits mix of hex
         const resetTokenExpiresAt = Date.now() + 1 * 60 * 60 * 1000   //new token valid for 1hr
 
-        user.resetPasswordToken = resetToekn
+        user.resetPasswordToken = resetToken
         user.resetPasswordExpiresAt = resetTokenExpiresAt
 
         await user.save()
 
-        //send emial 
-        await sendPwdResetEmail(user.email, `${process.env.CLIENT_URL}/reset-password/${resetToekn}`)
+        //send email 
+        await sendPwdResetEmail(user.email, `${process.env.CLIENT_URL}/reset-password/${resetToken}`)
 
         res.status(200).json({
             success: true,
@@ -244,7 +244,8 @@ export const resetPwdController = async (req, res) => {
         }
 
         //update password 
-        const newHashedPwd = await bcrypt.hash(password, 10)
+        const salt = await bcrypt.genSalt(10)
+        const newHashedPwd = await bcrypt.hash(password, salt)
 
         user.password = newHashedPwd,
         user.resetPasswordToken = undefined,

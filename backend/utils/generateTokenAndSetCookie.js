@@ -16,5 +16,5 @@ export const generateTokenAndSetCookie = (res, userId) => {
         sameSite: "strict",                             //prevent attck called 'csrf'
         maxAge: 7 * 24 * 60 * 60 * 1000                 //stored info. in cookie is valid for 7 days
     })
-    return token
+    return {token}
 }
